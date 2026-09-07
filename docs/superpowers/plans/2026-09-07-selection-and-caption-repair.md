@@ -70,4 +70,4 @@
 - [x] Verify selected count is 1–3 and no pair is from the same 45-second story cluster.
 - [x] Verify SRT speaker boundaries, ASS stability, 1080×1920 geometry, audio, and 1.10× duration.
 - [x] Run Ruff, formatting, mypy, all tests, build, and browser smoke tests.
-- [ ] Commit and push the verified repair to GitHub.
+- [x] Commit and push the verified repair to GitHub.
