@@ -1,0 +1,63 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "media-viral-clipper"
+version = "0.1.0"
+description = "Local, transcript-led discovery and rendering of engaging short-form video clips"
+readme = "README.md"
+requires-python = ">=3.11,<3.14"
+license = { text = "MIT" }
+dependencies = [
+  "fastapi>=0.118,<0.120",
+  "numpy>=2.0",
+  "pydantic>=2.9",
+  "rich>=13.9",
+  "typer>=0.12",
+  "uvicorn>=0.37",
+]
+
+[project.optional-dependencies]
+analysis = [
+  "faster-whisper>=1.1",
+  "opencv-python>=4.10,<5",
+  "scenedetect>=0.6.6",
+]
+dev = [
+  "build>=1.2",
+  "httpx>=0.28",
+  "mypy>=1.13",
+  "playwright>=1.55",
+  "pytest>=8.3",
+  "pytest-cov>=6.0",
+  "ruff>=0.8",
+]
+
+[project.scripts]
+clipper = "clipper.cli:app"
+clipper-doctor = "clipper.doctor:main"
+clipper-web = "clipper.web:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/clipper"]
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "RUF"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+packages = ["clipper"]
+
+[[tool.mypy.overrides]]
+module = ["cv2", "faster_whisper", "scenedetect", "scenedetect.*"]
+ignore_missing_imports = true

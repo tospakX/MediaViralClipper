@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f6f9">
+  <title>Media Viral Clipper</title>
+  <link rel="stylesheet" href="/assets/app.css">
+  <script src="/assets/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#job-form">Skip to setup</a>
+  <header class="topbar">
+    <a class="brand" href="/"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>Media Viral Clipper</a>
+    <div id="system-badge" class="system-badge"><span class="status-dot"></span><span id="system-label">Checking system</span></div>
+  </header>
+
+  <main class="app-shell">
+    <section class="hero">
+      <div><p class="eyebrow">Local cut room · powered by Ollama</p><h1>Episodes in.<br><em>Vertical clips out.</em></h1></div>
+      <p>Choose one video or a folder containing up to 100. Qwen finds the moments, clip count is automatic, and episodes process one at a time.</p>
+    </section>
+
+    <form id="job-form" class="ingest-panel" novalidate>
+      <div class="ingest-actions">
+        <button id="select-folder" class="ingest-choice primary-choice" type="button">
+          <span class="choice-icon" aria-hidden="true">▰</span>
+          <span><strong>Choose a folder</strong><small>Best for seasons and 80–100 videos</small></span>
+          <span aria-hidden="true">→</span>
+        </button>
+        <button id="select-video" class="ingest-choice" type="button">
+          <span class="choice-icon play" aria-hidden="true">▶</span>
+          <span><strong>Choose one video</strong><small>Process a single episode</small></span>
+          <span aria-hidden="true">→</span>
+        </button>
+      </div>
+
+      <div id="source-summary" class="source-summary" hidden>
+        <span class="summary-dot" aria-hidden="true"></span>
+        <span><strong id="source-name"></strong><small id="source-note"></small></span>
+        <button id="change-source" type="button">Change</button>
+      </div>
+
+      <details class="path-entry">
+        <summary>Paste a path instead</summary>
+        <div class="field source-field"><label for="source">Episode or folder path</label><input id="source" name="source" required autocomplete="off" spellcheck="false" placeholder="~/Videos/Season 01"></div>
+      </details>
+
+      <div class="run-row">
+        <div class="defaults"><span>Auto clip count</span><span>Strict 9:16</span><span>Burned captions</span><span>Qwen judge</span></div>
+        <button id="start-button" class="primary-button" type="submit" disabled><span>Choose episodes first</span><span aria-hidden="true">→</span></button>
+      </div>
+
+      <details class="advanced">
+        <summary>Settings</summary>
+        <div class="advanced-grid">
+          <div class="field output-field"><label for="output">Output folder</label><div class="input-action"><input id="output" name="output" value="~/Downloads/MediaViralClipper" spellcheck="false"><button id="browse-output" type="button">Browse</button></div></div>
+          <div class="field duration-field"><label>Clip length</label><div><input id="min_duration" name="min_duration" type="number" min="1" max="300" value="15" aria-label="Minimum duration in seconds"><span>–</span><input id="max_duration" name="max_duration" type="number" min="1" max="300" value="40" aria-label="Maximum duration in seconds"><span>sec</span></div></div>
+          <div class="field"><label for="caption_style">Captions</label><select id="caption_style" name="caption_style"><option value="bold" selected>Viral</option><option value="default">Clean</option><option value="minimal">Minimal</option></select></div>
+          <div class="field"><label for="whisper_model">Speech model</label><select id="whisper_model" name="whisper_model"><option value="tiny">Tiny</option><option value="base">Base</option><option value="small" selected>Small</option><option value="medium">Medium</option><option value="large-v3">Large v3</option></select></div>
+          <div class="field"><label for="language">Language</label><input id="language" name="language" placeholder="Auto-detect"></div>
+          <div class="field"><label for="device">Transcription</label><select id="device" name="device"><option value="auto">Auto</option><option value="cuda">NVIDIA GPU</option><option value="cpu">CPU</option></select></div>
+          <div class="field"><label for="hardware_encoding">Encoder</label><select id="hardware_encoding" name="hardware_encoding"><option value="auto">Auto</option><option value="nvenc">NVIDIA NVENC</option><option value="cpu">CPU / x264</option></select></div>
+          <div class="field"><label for="workers">CPU workers</label><input id="workers" name="workers" type="number" min="1" max="16" value="2"></div>
+          <div class="field"><label for="ranker">Moment judge</label><select id="ranker" name="ranker"><option value="ollama" selected>Ollama · Qwen 1.7B</option><option value="heuristic">Fast heuristic</option><option value="openai-compatible">Custom LLM API</option></select></div>
+          <div class="field llm-field" hidden><label for="llm_base_url">LLM base URL</label><input id="llm_base_url" name="llm_base_url" value="http://127.0.0.1:11434/v1"></div>
+          <div class="field llm-field" hidden><label for="llm_model">LLM model</label><input id="llm_model" name="llm_model" value="qwen3:1.7b"></div>
+          <div class="output-switches" aria-label="Outputs"><label><input name="vertical" type="checkbox" checked><span>Vertical video</span></label><label><input name="captions" type="checkbox" checked><span>Auto captions</span></label><label><input name="dry_run" type="checkbox"><span>Analyze only</span></label></div>
+        </div>
+      </details>
+      <p id="form-error" class="form-error" role="alert" hidden></p>
+    </form>
+
+    <div class="workspace">
+      <section class="queue-panel" aria-live="polite">
+        <div class="panel-head"><div><p class="eyebrow">Queue</p><h2 id="batch-title">No episodes queued</h2></div><output id="batch-count">0 / 0</output></div>
+        <progress id="batch-progress" max="100" value="0">0%</progress>
+        <p id="batch-detail" class="batch-detail">Choose a folder or video to begin.</p>
+        <div class="queue-tools"><label><span class="sr-only">Search queue</span><input id="queue-search" type="search" placeholder="Search episodes"></label><label><span class="sr-only">Filter queue</span><select id="queue-filter"><option value="all">All</option><option value="active">Active</option><option value="completed">Ready</option><option value="failed">Failed</option></select></label></div>
+        <div id="episode-list" class="episode-list"></div>
+      </section>
+
+      <section id="results" class="preview-panel" aria-live="polite">
+        <div id="preview-empty" class="preview-empty"><span aria-hidden="true">9:16</span><h2>Your cuts appear here</h2><p>Only clips created in the current session appear here.</p></div>
+        <div id="preview-content" hidden>
+          <div class="preview-head"><div><p class="eyebrow">Preview</p><h2 id="preview-title">Selected episode</h2><p id="selected-source" class="selected-source"></p></div><span id="result-count"></span></div>
+          <div class="player-stage"><div class="player-shell" data-format="vertical"><video id="preview-player" controls playsinline preload="metadata"></video><div id="preview-message" class="preview-message" hidden></div></div></div>
+          <div class="preview-toolbar">
+            <div id="format-switch" class="format-switch" aria-label="Preview format"><button data-format="vertical" type="button">Vertical</button><button data-format="original" type="button">Original</button></div>
+            <div class="review-nav"><button id="previous-clip" type="button" aria-label="Previous clip">←</button><span id="clip-position">1 / 1</span><button id="next-clip" type="button" aria-label="Next clip">→</button></div>
+          </div>
+          <details class="preview-copy"><summary><span id="preview-clip-number" class="clip-number"></span><span>Why this cut?</span><span id="preview-score" class="overall-score"></span></summary><p id="preview-reason" class="reason"></p></details>
+          <div class="preview-actions"><div id="preview-links" class="artifact-links"></div><button id="transcript-toggle" class="transcript-toggle" type="button" aria-expanded="false" aria-controls="preview-transcript"><span>Show transcript</span><i aria-hidden="true">＋</i></button></div>
+          <blockquote id="preview-transcript" class="transcript" hidden></blockquote>
+          <div><p class="strip-label">Clips</p><div id="clip-strip" class="clip-strip"></div></div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <dialog id="file-browser" class="file-browser" aria-labelledby="browser-title">
+    <div class="browser-head"><div><p class="eyebrow">This computer</p><h2 id="browser-title">Choose a folder</h2></div><button id="close-browser" class="icon-button" type="button" aria-label="Close file browser">×</button></div>
+    <div class="browser-location"><button id="browser-up" type="button" aria-label="Go to parent folder">←</button><code id="browser-path">Loading…</code></div>
+    <div id="browser-error" class="browser-error" role="alert" hidden></div>
+    <div id="browser-list" class="browser-list" aria-live="polite"></div>
+    <div class="browser-actions"><span id="browser-help">Open the folder containing your episodes.</span><button id="use-folder" type="button">Use this folder</button></div>
+  </dialog>
+</body>
+</html>

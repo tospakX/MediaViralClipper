@@ -1,0 +1,19 @@
+1
+00:00:00,500 --> 00:00:02,000
+Wait, is that a tiny moon?
+
+2
+00:00:02,200 --> 00:00:04,000
+No, it is an enormous sandwich.
+
+3
+00:00:04,200 --> 00:00:06,000
+Why is it orbiting us?
+
+4
+00:00:06,200 --> 00:00:08,500
+Because lunch has gravity!
+
+5
+00:00:09,000 --> 00:00:11,000
+That is not how science works.
