@@ -47,6 +47,28 @@ Second sentence.
     assert segments[1].start == 2.8
 
 
+def test_srt_parser_removes_fansub_web_addresses_without_losing_dialogue() -> None:
+    content = """1
+00:00:01,000 --> 00:00:03,000
+Tekrar ve tekrar, rickvemortymaceralari.com.
+
+2
+00:00:04,000 --> 00:00:05,000
+www.rickvemorty.com
+
+3
+00:00:06,000 --> 00:00:08,000
+Real dialogue survives.
+"""
+
+    segments = parse_srt(content)
+
+    assert [segment.text for segment in segments] == [
+        "Tekrar ve tekrar",
+        "Real dialogue survives.",
+    ]
+
+
 def test_embedded_subtitles_reject_short_forced_sign_track() -> None:
     media = MediaInfo(
         source=Path("episode.mkv"),

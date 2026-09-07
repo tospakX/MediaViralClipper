@@ -66,12 +66,12 @@ uv run clipper-web
 ```
 
 Open <http://127.0.0.1:8765>, choose one episode or browse to a folder, then select **Find my best
-clips**. The web UI chooses 2–8 clips automatically from episode length and the number of distinct,
-high-scoring moments. If analysis produces at least two candidates, it always returns more than one
-clip. A folder is scanned recursively for MP4, MKV, MOV, WebM, M4V, and AVI files. Up to 100 episodes
-can be queued in one batch, with one aggregate progress view instead of one browser request per
-episode. Select **View clips** beside any completed episode to inspect its transcript, scores,
-previews, and downloads.
+clips**. The web UI chooses one to three clips automatically from the number of distinct,
+high-scoring moments. Nearby candidates are treated as one story sequence so two pieces of the same
+scene do not consume separate output slots. A folder is scanned recursively for MP4, MKV, MOV,
+WebM, M4V, and AVI files. Up to 100 episodes can be queued in one batch, with one aggregate progress
+view instead of one browser request per episode. Select **View clips** beside any completed episode
+to inspect its transcript, scores, previews, and downloads.
 
 The built-in file browser reads local paths directly; it does not upload or duplicate episode files.
 Paste-a-path remains available for power users, and output defaults to

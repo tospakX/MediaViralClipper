@@ -84,7 +84,10 @@ def _caption_chunks(words: list[Word], max_words: int, max_characters: int) -> l
         if not clean:
             continue
         next_length = current_length + (1 if current else 0) + len(clean)
-        if current and (len(current) >= max_words or next_length > max_characters):
+        speaker_change = clean.startswith(("-", "\u2013", "\u2014"))
+        if current and (
+            speaker_change or len(current) >= max_words or next_length > max_characters
+        ):
             chunks.append(current)
             current = []
             current_length = 0
@@ -169,9 +172,7 @@ def _ass_caption(cue: CaptionCue, active_index: int | None = None) -> str:
     for index, token in enumerate(cue.text.split()):
         clean = token.strip(".,!?").casefold()
         escaped = _ass_escape(token)
-        if index == active_index:
-            rendered.append(r"{\fscx110\fscy110}{\b1\c&H0045FFFF&}" + escaped + r"{\r}")
-        elif clean in emphasized:
+        if index == active_index or (active_index is None and clean in emphasized):
             rendered.append(r"{\b1\c&H0045FFFF&}" + escaped + r"{\r}")
         else:
             rendered.append(escaped)

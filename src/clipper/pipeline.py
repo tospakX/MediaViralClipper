@@ -2,6 +2,7 @@
 
 import json
 import re
+import shutil
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
@@ -102,6 +103,7 @@ class ClipperPipeline:
                     "device": self.config.device,
                     "compute_type": self.config.compute_type,
                     "embedded": self.config.use_embedded_subtitles,
+                    "subtitle_parser": 2,
                 }
             ),
             TranscriptSegment,
@@ -176,7 +178,7 @@ class ClipperPipeline:
             lambda: ranker.rank(candidates),
         )
         if self.config.clips == "auto":
-            diverse_pool = choose_diverse(ranked, 8, minimum=2)
+            diverse_pool = choose_diverse(ranked, 8, minimum=1)
             clip_count = automatic_clip_count(diverse_pool, media.duration)
             diverse = diverse_pool[:clip_count]
         else:
@@ -219,6 +221,7 @@ class ClipperPipeline:
                 )
                 for selection in selections
             )
+            _remove_stale_render_directories(episode_directory, selections)
         return PipelineResult(
             source=source,
             episode_directory=episode_directory,
@@ -266,7 +269,7 @@ class ClipperPipeline:
                 "playback_speed": self.config.playback_speed,
                 "hardware_encoding": self.config.hardware_encoding,
                 "workers": self.config.workers,
-                "render_version": 3,
+                "render_version": 4,
             }
         )
         resumed = self._resume_render(metadata_path, render_key, original, vertical, subtitle_path)
@@ -472,3 +475,19 @@ def _write_json(path: Path, payload: Any) -> None:
         encoding="utf-8",
     )
     temporary.replace(path)
+
+
+def _remove_stale_render_directories(
+    episode_directory: Path, selections: tuple[Selection, ...]
+) -> None:
+    active = {f"clip_{selection.rank:02d}" for selection in selections}
+    for path in episode_directory.iterdir():
+        if (
+            path.name in active
+            or re.fullmatch(r"clip_\d+", path.name) is None
+            or not path.is_dir()
+            or path.is_symlink()
+            or not (path / "metadata.json").is_file()
+        ):
+            continue
+        shutil.rmtree(path)

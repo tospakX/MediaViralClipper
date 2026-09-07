@@ -109,8 +109,8 @@ def automatic_clip_count(ranked: list[RankedCandidate], media_duration: float) -
     """Choose a useful clip count from the episode and ranked moment pool."""
     if not ranked:
         return 0
-    minimum = min(2, len(ranked))
-    runtime_target = max(2, min(8, math.ceil(media_duration / 600) + 1))
+    minimum = 1
+    runtime_target = max(1, min(3, math.ceil(media_duration / 600) + 1))
     quality_floor = max(0.25, ranked[0].score.overall * 0.65)
     viable = sum(item.score.overall >= quality_floor for item in ranked)
     return min(len(ranked), runtime_target, max(minimum, viable))
@@ -119,8 +119,9 @@ def automatic_clip_count(ranked: list[RankedCandidate], media_duration: float) -
 def _similarity(first: Candidate, second: Candidate) -> float:
     overlap = max(0.0, min(first.end, second.end) - max(first.start, second.start))
     temporal = overlap / max(1.0, min(first.duration, second.duration))
-    if overlap == 0 and abs(first.start - second.start) < 8:
-        temporal = 0.65
+    gap = max(0.0, max(first.start, second.start) - min(first.end, second.end))
+    if overlap == 0 and gap <= 45:
+        temporal = 0.8
     first_words = Counter(_content_words(first.transcript))
     second_words = Counter(_content_words(second.transcript))
     intersection = sum((first_words & second_words).values())

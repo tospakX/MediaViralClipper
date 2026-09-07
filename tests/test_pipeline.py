@@ -314,3 +314,36 @@ def test_render_reports_started_before_completion(tmp_path: Path, monkeypatch: o
 
     render_events = [status for stage, status in events if stage == Stage.RENDER]
     assert render_events == [StageStatus.STARTED, StageStatus.COMPLETED]
+
+
+def test_rerender_with_fewer_selections_removes_stale_generated_clip_directory(
+    tmp_path: Path, monkeypatch: object
+) -> None:
+    source = tmp_path / "episode.mkv"
+    source.write_bytes(b"fixture")
+    output = tmp_path / "output"
+
+    def fake_render(preferred: list[str], cpu: list[str], runner: object = None) -> str:
+        del cpu, runner
+        Path(preferred[-1]).write_bytes(b"rendered")
+        return "libx264"
+
+    monkeypatch.setattr("clipper.pipeline.render_with_fallback", fake_render)  # type: ignore[attr-defined]
+    common = dict(
+        output=output,
+        min_duration=10,
+        max_duration=15,
+        target_duration=12,
+        vertical=False,
+        captions=False,
+        hardware_encoding="cpu",
+    )
+    first = ClipperPipeline(ClipperConfig(**common, clips=2), _services(Calls())).run(source)
+    assert (first.episode_directory / "clip_02" / "metadata.json").is_file()
+
+    second = ClipperPipeline(
+        ClipperConfig(**common, clips=1, overwrite=True), _services(Calls())
+    ).run(source)
+
+    assert (second.episode_directory / "clip_01" / "metadata.json").is_file()
+    assert not (second.episode_directory / "clip_02").exists()

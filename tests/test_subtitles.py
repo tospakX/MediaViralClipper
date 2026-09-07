@@ -108,4 +108,28 @@ def test_ass_uses_mobile_safe_wrapping_and_active_word_events() -> None:
     assert ",96,96,410,1" in ass
     assert ass.count("Dialogue: 0,") == len(cue.tokens)
     assert r"\c&H0045FFFF&" in ass
-    assert r"\fscx110\fscy110" in ass
+    assert r"\fscx" not in ass
+    assert r"\fscy" not in ass
+
+
+def test_caption_chunks_never_mix_dash_prefixed_speaker_turns() -> None:
+    words = ("Neden", "bildirmediniz?", "-Size", "bildirdim", "zaten.")
+    segment = TranscriptSegment(
+        start=0,
+        end=5,
+        text="Neden bildirmediniz? -Size bildirdim zaten.",
+        words=tuple(
+            Word(start=index, end=index + 0.8, text=word) for index, word in enumerate(words)
+        ),
+    )
+
+    cues = build_caption_cues(
+        [segment],
+        clip_start=0,
+        clip_end=5,
+        max_words=6,
+        max_characters=100,
+        playback_speed=1,
+    )
+
+    assert [cue.text for cue in cues] == ["Neden bildirmediniz?", "-Size bildirdim zaten."]

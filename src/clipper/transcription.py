@@ -14,6 +14,9 @@ _TIMING_LINE = re.compile(
     r"(?P<start>\d\d:\d\d:\d\d[,.]\d+)\s+-->\s+(?P<end>\d\d:\d\d:\d\d[,.]\d+)"
 )
 _TAGS = re.compile(r"<[^>]+>|\{\\[^}]+\}")
+_WEB_ADDRESS = re.compile(
+    r"(?:https?://|www\.)\S+|\b[\w-]+(?:\.[\w-]+)+(?:/\S*)?[.,!?;:]*", re.IGNORECASE
+)
 
 
 def parse_srt(content: str) -> list[TranscriptSegment]:
@@ -27,7 +30,9 @@ def parse_srt(content: str) -> list[TranscriptSegment]:
         match = _TIMING_LINE.search(lines[timing_index])
         if not match:
             continue
-        text = " ".join(_TAGS.sub("", line).strip() for line in lines[timing_index + 1 :]).strip()
+        text = _clean_subtitle_text(
+            " ".join(_TAGS.sub("", line).strip() for line in lines[timing_index + 1 :])
+        )
         if not text:
             continue
         start = parse_timestamp(match.group("start"))
@@ -38,6 +43,11 @@ def parse_srt(content: str) -> list[TranscriptSegment]:
         if end > start:
             result.append(TranscriptSegment(start=start, end=end, text=text))
     return result
+
+
+def _clean_subtitle_text(text: str) -> str:
+    without_addresses = _WEB_ADDRESS.sub("", text)
+    return re.sub(r"\s+", " ", without_addresses).strip(" \t,;:-")
 
 
 def extract_embedded_subtitles(
